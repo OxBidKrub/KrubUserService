@@ -5,10 +5,14 @@ const app_data_source_1 = require("./app-data-source");
 const express_1 = tslib_1.__importDefault(require("express"));
 const user_entity_1 = require("./entity/user.entity");
 const auctionItem_entity_1 = require("./entity/auctionItem.entity");
+const PORT = process.env.PORT;
 app_data_source_1.myDataSource
     .initialize()
     .then(() => {
     console.log("Data Source has been initialized!");
+    // start express server
+    app.listen(PORT);
+    console.log("server listening on PORT : " + PORT);
 })
     .catch((err) => {
     console.error("Error during Data Source initialization:", err);
@@ -104,6 +108,4 @@ app.get("/users/:id/auction-items", function (req, res) {
         return res.send(results);
     });
 });
-// start express server
-app.listen(3000);
 //# sourceMappingURL=app.js.map

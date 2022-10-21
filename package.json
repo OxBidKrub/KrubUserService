@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsc && node dist/app.js"
+    "start": "tsc && node dist/app.js",
+    "docker":"tsc && docker compose  --env-file=.env up --build -d",
+    "docker:service": "tsc && docker compose  --env-file=.env up --build -d service",
+    "docker:db":"tsc && docker compose  --env-file=.env up --build -d db"
   },
   "author": "",
   "license": "ISC",

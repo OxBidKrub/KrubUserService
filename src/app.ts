@@ -4,10 +4,14 @@ import { Request, Response } from "express"
 import { User } from "./entity/user.entity";
 import { AuctionItem } from "./entity/auctionItem.entity";
 
+const PORT = process.env.PORT
 myDataSource
     .initialize()
     .then(() => {
         console.log("Data Source has been initialized!")
+        // start express server
+        app.listen(PORT)
+        console.log("server listening on PORT : "+PORT)
     })
     .catch((err) => {
         console.error("Error during Data Source initialization:", err)
@@ -95,6 +99,6 @@ app.get("/users/:id/auction-items", async function (req: Request, res: Response)
 })
 
 
-// start express server
-app.listen(3000)
+
+
  
