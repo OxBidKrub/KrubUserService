@@ -1,104 +1,126 @@
-import { myDataSource } from "./app-data-source"
-import express from "express"
-import { Request, Response } from "express"
+import { myDataSource } from "./app-data-source";
+import express from "express";
+import { Request, Response } from "express";
 import { User } from "./entity/user.entity";
-import { AuctionItem } from "./entity/auctionItem.entity";
-
-const PORT = process.env.PORT
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import { authenticateToken } from "./middleware/authorization";
+import { getAllUsers, getUserbyId, pay, topup } from "./repo/userRepo";
+const PORT = process.env.PORT;
+const JWT_SECRET = process.env.JWT_SECRET
 myDataSource
-    .initialize()
-    .then(() => {
-        console.log("Data Source has been initialized!")
-        // start express server
-        app.listen(PORT)
-        console.log("server listening on PORT : "+PORT)
-    })
-    .catch((err) => {
-        console.error("Error during Data Source initialization:", err)
-    });
-// create and setup express app
-const app = express()
-app.use(express.json())
+  .initialize()
+  .then(() => {
+    console.log("Data Source has been initialized!");
+    // start express server
+    app.listen(PORT);
+    console.log("server listening on PORT : " + PORT);
+  })
+  .catch((err) => {
+    console.error("Error during Data Source initialization:", err);
+  });
 
-// register routes
+const app = express();
+app.use(express.json());
 
-// register routes
 app.get("/users", async function (req: Request, res: Response) {
-    const users = await myDataSource.getRepository(User).find()
-    res.json(users)
+  const users = await getAllUsers()
+  res.json(users);
+});
+
+app.get('/users/getUserInfo',authenticateToken,(req : any,res) => {
+    res.send(req.user)
+})
+
+app.post('/users/topup',authenticateToken,async (req : any,res) => {
+    if(req.user.id == req.body.id){
+       try {
+         const topupres =  await topup(req.user.id,req.body.amount);
+        res.send("Topup success")
+       } catch (error) {
+        res.status(400).send("Topup not successful")
+       }
+       
+    }else{
+        res.status(400).send("Invalid Token")
+    }
+    
+})
+
+app.post('/users/pay',authenticateToken,async (req : any,res) => {
+    if(req.user.id == req.body.payerId){
+       try {
+         const paymentres =  await pay(req.user.id,req.body.payeeId,req.body.amount);
+         res.send(paymentres)
+       } catch (error) {
+        res.status(400).send("payment not successfull")
+       }
+       
+       
+    }else{
+        res.status(400).send("Invalid Token")
+    }
 })
 
 app.get("/users/:id", async function (req: Request, res: Response) {
-    const results = await myDataSource.getRepository(User).findOneBy({
-        id: req.params.id,
-    })
-    return res.send(results)
-})
+  const user = await getUserbyId(req.params.id)
+  const nonSensitiveData = {firstName:user.firstName,lastName:user.lastName}
+  return res.send(user);
+});
+
+
+app.post("/users/login", async (req, res) => {
+  const user = await myDataSource.getRepository(User).findOneBy({
+    email: req.body.email,
+  });
+  if (user == null) {
+    return res.status(400).send("Can not find user");
+  }
+  try {
+    if (await bcrypt.compare(req.body.password,user.password)) {
+      const tokenData = {
+        id: user.id,
+        username: user.username,
+        firstName:user.firstName,
+        lastName:user.lastName,
+        email: user.email,
+        address:user.address,
+      };
+      const accessToken = jwt.sign(tokenData, JWT_SECRET, {expiresIn:"7d"})
+      res.json({accessToken:accessToken})
+    } else {
+      res.send("not allowed");
+    }
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
 
 app.post("/users", async function (req: Request, res: Response) {
-    console.log(req.body);
-    const user = await myDataSource.getRepository(User).create(req.body)
-    const results = await myDataSource.getRepository(User).save(user)
-    return res.send(results)
-})
+  console.log(req.body);
+  try {
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+    const tempUser = { ...req.body, password: hashedPassword };
+    const user = await myDataSource.getRepository(User).create(tempUser);
+    const results = await myDataSource.getRepository(User).save(user);
+    return res.send(results);
+  } catch (error) {
+    res.status(500).send(error.code || error);
+  }
+});
 
 app.put("/users/:id", async function (req: Request, res: Response) {
-    const user = await myDataSource.getRepository(User).findOneBy({
-        id: req.params.id,
-    })
-    myDataSource.getRepository(User).merge(user, req.body)
-    const results = await myDataSource.getRepository(User).save(user)
-    return res.send(results)
-})
+  const user = await myDataSource.getRepository(User).findOneBy({
+    id: req.params.id,
+  });
+  myDataSource.getRepository(User).merge(user, req.body);
+  const results = await myDataSource.getRepository(User).save(user);
+  return res.send(results);
+});
 
 app.delete("/users/:id", async function (req: Request, res: Response) {
-    const results = await myDataSource.getRepository(User).delete(req.params.id)
-    return res.send(results)
-})
+  const results = await myDataSource.getRepository(User).delete(req.params.id);
+  return res.send(results);
+});
 
-// register routes
-app.get("/auction-items", async function (req: Request, res: Response) {
-    const auctionItems = await myDataSource.getRepository(AuctionItem).find()
-    res.json(auctionItems)
-})
-
-app.get("/auction-items/:id", async function (req: Request, res: Response) {
-    const results = await myDataSource.getRepository(AuctionItem).findOneBy({
-        id: req.params.id,
-    })
-    return res.send(results)
-})
-
-app.post("/auction-items", async function (req: Request, res: Response) {
-    const auctionItem = await myDataSource.getRepository(AuctionItem).create(req.body)
-    const results = await myDataSource.getRepository(AuctionItem).save(auctionItem)
-    return res.send(results)
-})
-
-app.put("/auction-items/:id", async function (req: Request, res: Response) {
-    const auctionItem = await myDataSource.getRepository(AuctionItem).findOneBy({
-        id: req.params.id,
-    })
-    myDataSource.getRepository(AuctionItem).merge(auctionItem, req.body)
-    const results = await myDataSource.getRepository(AuctionItem).save(auctionItem)
-    return res.send(results)
-})
-
-app.delete("/auction-items/:id", async function (req: Request, res: Response) {
-    const results = await myDataSource.getRepository(AuctionItem).delete(req.params.id)
-    return res.send(results)
-})
-
-app.get("/users/:id/auction-items", async function (req: Request, res: Response) {
-    const user = await myDataSource.getRepository(User).findOneBy({
-        id: req.params.id,
-    })
-    myDataSource.getRepository(User).merge(user, req.body)
-    const results = await (await myDataSource.getRepository(User).save(user)).auctionItems
-    return res.send(results)
-})
-
-
-
-
- 

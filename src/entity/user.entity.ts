@@ -1,10 +1,27 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm"
-import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsEmail , Length, IsPhoneNumber, IsNumberString} from 'class-validator';
 import { Base } from "./base/Base.entity";
-import { AuctionItem } from "./auctionItem.entity";
-import { Bid } from "./bid.entity";
+
 @Entity('user')
 export class User extends Base{
+
+
+    @Column({unique: true})
+    @IsString()
+    @IsNotEmpty()
+    @Length(6,20)
+    username: string
+
+    @Column({unique: true})
+    @IsString()
+    @IsNotEmpty()
+    @IsEmail()
+    email: string
+
+    @Column()
+    @IsString()
+    @IsNotEmpty()
+    password: string
 
     @Column()
     @IsString()
@@ -19,18 +36,19 @@ export class User extends Base{
     @Column()
     @IsNumber()
     @IsNotEmpty()
-    age: number
+    money: number
 
     @Column()
-    @IsNumber()
+    @Length(10,10)
     @IsNotEmpty()
-    test: number
+    @IsNumberString()
+    phoneNumber: string
 
-    @OneToMany(() => AuctionItem, (auctionItem) => auctionItem.user)
-    auctionItems: AuctionItem[]
+    @Column()
+    @IsNotEmpty()
+    address: string
+ 
 
-    @OneToMany(() => Bid, (bid) => bid.user)
-    bids: Bid[]
 }
 
 
