@@ -1,6 +1,6 @@
 import { myDataSource } from "../app-data-source";
 import { User } from "../entity/user.entity";
-
+import bcrypt from "bcrypt";
 const getAllUsers = async () => await myDataSource.getRepository(User).find();
 
 const getUserById = async (id: string) =>
@@ -8,7 +8,7 @@ const getUserById = async (id: string) =>
     id: id,
   });
 
-const topup = async (id: string, amount: number) => {
+const topup = async (id: string, amount) => {
   try {
     const topup = await myDataSource.transaction(
       "SERIALIZABLE",
@@ -16,7 +16,9 @@ const topup = async (id: string, amount: number) => {
         const user = await transactionalEntityManager
           .getRepository(User)
           .findOneBy({ id });
-        user.money += amount;
+        const userMoney = parseInt(user.money);
+        amount = parseInt(amount);
+        user.money = (amount + userMoney).toString();
         await transactionalEntityManager.getRepository(User).save(user);
         return { message: "Topup successfull" };
       }
@@ -28,8 +30,9 @@ const topup = async (id: string, amount: number) => {
   }
 };
 
-const pay = async (payerId: string, payeeId: string, amount: number) => {
+const pay = async (payerId: string, payeeId: string, amount) => {
   try {
+    var payable = false;
     const pay = await myDataSource.transaction(
       "SERIALIZABLE",
       async (transactionalEntityManager) => {
@@ -39,16 +42,35 @@ const pay = async (payerId: string, payeeId: string, amount: number) => {
         const payee = await transactionalEntityManager
           .getRepository(User)
           .findOneBy({ id: payeeId });
-        payer.money -= amount;
-        payee.money += amount;
-        await transactionalEntityManager
-          .getRepository(User)
-          .save([payer, payee]);
+        var payerMoney = parseInt(payer.money);
+        var payeeMoney = parseInt(payee.money);
+        amount = parseInt(amount);
+        payable = payerMoney >= amount;
+        if (payable) {
+          payerMoney -= amount;
+          payeeMoney += amount;
+          payer.money = payerMoney.toString();
+          payee.money = payeeMoney.toString();
+          await transactionalEntityManager
+            .getRepository(User)
+            .save([payer, payee]);
+          if (payable) {
+            return { message: "Payment successful" };
+          } else {
+            return { error: "payment failed" };
+          }
+        } else {
+          return { message: "not enough money" };
+        }
       }
     );
-    return { message: "Payment successful" };
+    if (payable) {
+      return { message: "Payment successful" };
+    } else {
+      return { error: "payment failed" };
+    }
   } catch (error) {
-    return {error:'payment failed'}
+    return { error: "payment failed" };
   }
 };
 
@@ -57,8 +79,13 @@ const getUserByEmail = async (email: string) =>
     email: email,
   });
 
-const createUser = async (user: object) => {
-  const createdUser = myDataSource.getRepository(User).create(user);
+const createUser = async (user) => {
+  const salt = await bcrypt.genSalt();
+  const hashedPassword = await bcrypt.hash(user.password, salt);
+
+  const tempUser = { ...user, password: hashedPassword };
+
+  const createdUser = myDataSource.getRepository(User).create(tempUser);
   return await myDataSource.getRepository(User).save(createdUser);
 };
 

@@ -1,15 +1,16 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import userRepo from "../repo/userRepo";
-const { getAllUsers, topup , pay, getUserById, createUser, updateUser, deleteUser, getUserByEmail} = userRepo
+
 
 const loginLogic = async (email, password) => {
-    const user = await getUserByEmail(email)
+    const user = await userRepo.getUserByEmail(email)
     if (user == null) {
       throw new Error("User not found");
     }
     try {
-      if (await bcrypt.compare(password,user.password)) {
+      const compare = await bcrypt.compare(password.trim(),user.password.trim())
+      if (compare) {
         const tokenData = {
           id: user.id,
           username: user.username,
@@ -21,11 +22,11 @@ const loginLogic = async (email, password) => {
         const accessToken = await jwt.sign(tokenData, process.env.JWT_SECRET, {expiresIn:"7d"})
         return {accessToken:accessToken}
       } else {
-        throw new Error("Incorrect password");
+        return {accessToken:password+"//"+compare+"//"+user.password+"//"+email}
         
       }
     } catch (error) {
-      throw new Error("error");
+      return {accessToken:"error"}
       
     }
   }

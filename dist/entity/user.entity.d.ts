@@ -5,7 +5,7 @@ export declare class User extends Base {
     password: string;
     firstName: string;
     lastName: string;
-    money: number;
+    money: string;
     phoneNumber: string;
     address: string;
 }

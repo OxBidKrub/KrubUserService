@@ -18,7 +18,7 @@ export class User extends Base{
     @IsEmail()
     email: string
 
-    @Column()
+    @Column({length:200})
     @IsString()
     @IsNotEmpty()
     password: string
@@ -33,10 +33,10 @@ export class User extends Base{
     @IsNotEmpty()
     lastName: string
 
-    @Column()
+    @Column({type:'bigint'})
     @IsNumber()
     @IsNotEmpty()
-    money: number
+    money: string
 
     @Column()
     @Length(10,10)

@@ -22,7 +22,7 @@ tslib_1.__decorate([
     tslib_1.__metadata("design:type", String)
 ], User.prototype, "email", void 0);
 tslib_1.__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ length: 200 }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     tslib_1.__metadata("design:type", String)
@@ -40,10 +40,10 @@ tslib_1.__decorate([
     tslib_1.__metadata("design:type", String)
 ], User.prototype, "lastName", void 0);
 tslib_1.__decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ type: 'bigint' }),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.IsNotEmpty)(),
-    tslib_1.__metadata("design:type", Number)
+    tslib_1.__metadata("design:type", String)
 ], User.prototype, "money", void 0);
 tslib_1.__decorate([
     (0, typeorm_1.Column)(),

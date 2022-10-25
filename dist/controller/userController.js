@@ -5,14 +5,14 @@ const tslib_1 = require("tslib");
 const jsonwebtoken_1 = tslib_1.__importDefault(require("jsonwebtoken"));
 const bcrypt_1 = tslib_1.__importDefault(require("bcrypt"));
 const userRepo_1 = tslib_1.__importDefault(require("../repo/userRepo"));
-const { getAllUsers, topup, pay, getUserById, createUser, updateUser, deleteUser, getUserByEmail } = userRepo_1.default;
 const loginLogic = (email, password) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
-    const user = yield getUserByEmail(email);
+    const user = yield userRepo_1.default.getUserByEmail(email);
     if (user == null) {
         throw new Error("User not found");
     }
     try {
-        if (yield bcrypt_1.default.compare(password, user.password)) {
+        const compare = yield bcrypt_1.default.compare(password.trim(), user.password.trim());
+        if (compare) {
             const tokenData = {
                 id: user.id,
                 username: user.username,
@@ -25,11 +25,11 @@ const loginLogic = (email, password) => tslib_1.__awaiter(void 0, void 0, void 0
             return { accessToken: accessToken };
         }
         else {
-            throw new Error("Incorrect password");
+            return { accessToken: password + "//" + compare + "//" + user.password + "//" + email };
         }
     }
     catch (error) {
-        throw new Error("error");
+        return { accessToken: "error" };
     }
 });
 exports.loginLogic = loginLogic;
