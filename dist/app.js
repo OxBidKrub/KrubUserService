@@ -24,12 +24,8 @@ var UserService = protoDescriptor.UserService;
 const getUserById = (call, callback) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
     callback(null, yield userRepo_1.default.getUserById(call.request.id));
 });
-const getAllUsers = (call) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
-    const users = yield userRepo_1.default.getAllUsers();
-    users.forEach((value) => {
-        call.write(value);
-    });
-    call.end();
+const getAllUsers = (call, callback) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
+    callback(null, { users: yield userRepo_1.default.getAllUsers() });
 });
 const topup = (call, callback) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
     try {

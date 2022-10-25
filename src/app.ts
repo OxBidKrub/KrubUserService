@@ -26,12 +26,8 @@ const getUserById = async (call, callback) => {
   callback(null, await userRepo.getUserById(call.request.id));
 };
 
-const getAllUsers = async (call) => {
-  const users = await userRepo.getAllUsers();
-  users.forEach((value) => {
-    call.write(value);
-  });
-  call.end();
+const getAllUsers = async (call, callback) => {
+  callback(null, {users:await userRepo.getAllUsers()});
 };
 
 const topup = async (call, callback) => {
