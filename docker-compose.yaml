@@ -33,8 +33,10 @@ services:
       PORT: ${SERVICE_PORT}
     ports:
       - ${SERVICE_PORT}:${SERVICE_PORT}
+      - '50051:50051'
     expose:
       - ${SERVICE_PORT}
+      - '50051'
     networks:
       - lan
     restart: "unless-stopped"
