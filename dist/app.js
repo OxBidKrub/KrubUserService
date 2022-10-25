@@ -77,6 +77,7 @@ var server = getServer();
 server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {
     console.log("grpc listening on 50051");
 });
+// express
 app_data_source_1.myDataSource
     .initialize()
     .then(() => {
