@@ -70,8 +70,9 @@ function getServer() {
     return server;
 }
 var server = getServer();
-server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {
-    console.log("grpc listening on 50051");
+server.bindAsync(`0.0.0.0:${PORT}`, grpc.ServerCredentials.createInsecure(), () => {
+    server.start();
+    console.log(`grpc listening on ${PORT}`);
 });
 // express
 app_data_source_1.myDataSource
@@ -79,11 +80,11 @@ app_data_source_1.myDataSource
     .then(() => {
     console.log("Data Source has been initialized!");
     // start express server
-    app.listen(PORT, () => {
-        server.start();
-        console.log("grpc listening on 50051");
-    });
-    console.log("server listening on PORT : " + PORT);
+    // app.listen(PORT, ()=>{
+    //   server.start();
+    //   console.log("grpc listening on 50052")
+    // });
+    // console.log("server listening on PORT : " + PORT);
 })
     .catch((err) => {
     console.error("Error during Data Source initialization:", err);

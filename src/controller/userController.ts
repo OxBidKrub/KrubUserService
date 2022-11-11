@@ -6,7 +6,7 @@ import userRepo from "../repo/userRepo";
 const loginLogic = async (email, password) => {
     const user = await userRepo.getUserByEmail(email)
     if (user == null) {
-      throw new Error("User not found");
+      return {accessToken:"user not found"}
     }
     try {
       const compare = await bcrypt.compare(password.trim(),user.password.trim())
@@ -22,7 +22,7 @@ const loginLogic = async (email, password) => {
         const accessToken = await jwt.sign(tokenData, process.env.JWT_SECRET, {expiresIn:"7d"})
         return {accessToken:accessToken}
       } else {
-        return {accessToken:password+"//"+compare+"//"+user.password+"//"+email}
+        return {accessToken:"incorrect password"}
         
       }
     } catch (error) {
