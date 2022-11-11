@@ -89,9 +89,9 @@ function getServer() {
   return server;
 }
 var server = getServer();
-server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => {
+server.bindAsync('0.0.0.0:50052', grpc.ServerCredentials.createInsecure(), () => {
   
-  console.log("grpc listening on 50051")
+  console.log("grpc listening on 50052")
 });
 
 // express
@@ -102,7 +102,7 @@ myDataSource
     // start express server
     app.listen(PORT, ()=>{
       server.start();
-      console.log("grpc listening on 50051")
+      console.log("grpc listening on 50052")
     });
     console.log("server listening on PORT : " + PORT);
   })
