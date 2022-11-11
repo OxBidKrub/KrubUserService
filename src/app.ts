@@ -90,7 +90,7 @@ function getServer() {
 }
 var server = getServer();
 server.bindAsync(`0.0.0.0:${PORT}`, grpc.ServerCredentials.createInsecure(), () => {
-  
+  server.start()
   console.log(`grpc listening on ${PORT}`)
 });
 
